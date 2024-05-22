@@ -244,17 +244,17 @@ func (p *Parser) parseHostname() (string, error) {
 
 // APP-NAME = NILVALUE / 1*48PRINTUSASCII
 func (p *Parser) parseAppName() (string, error) {
-	return parseUpToLen(p.buff, &p.cursor, p.l, 48, ErrInvalidAppName)
+	return parseUpToLen(p.buff, &p.cursor, p.l, 48, false, ErrInvalidAppName)
 }
 
 // PROCID = NILVALUE / 1*128PRINTUSASCII
 func (p *Parser) parseProcId() (string, error) {
-	return parseUpToLen(p.buff, &p.cursor, p.l, 128, ErrInvalidProcId)
+	return parseUpToLen(p.buff, &p.cursor, p.l, 128, false, ErrInvalidProcId)
 }
 
 // MSGID = NILVALUE / 1*32PRINTUSASCII
 func (p *Parser) parseMsgId() (string, error) {
-	return parseUpToLen(p.buff, &p.cursor, p.l, 32, ErrInvalidMsgId)
+	return parseUpToLen(p.buff, &p.cursor, p.l, 32, false, ErrInvalidMsgId)
 }
 
 func (p *Parser) parseStructuredData() (string, error) {
@@ -576,12 +576,15 @@ func parseStructuredData(buff []byte, cursor *int, l int) (string, error) {
 	return sdData, ErrNoStructuredData
 }
 
-func parseUpToLen(buff []byte, cursor *int, l int, maxLen int, e error) (string, error) {
+func parseUpToLen(buff []byte, cursor *int, l int, maxLen int, strict bool, e error) (string, error) {
 	var to int
 	var found bool
 	var result string
 
 	max := *cursor + maxLen
+	if !strict {
+	    max = l
+	}
 
 	for to = *cursor; (to <= max) && (to < l); to++ {
 		if buff[to] == ' ' {
